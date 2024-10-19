@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4CAF50">
+  <link rel="manifest" href="manifest.json">
+  <title>PWA con IndexedDB - CRUD</title>
+</head>
+<body>
+  <h1>CRUD con PWA e IndexedDB</h1>
+
+  <form id="dataForm">
+    <input type="hidden" id="id" name="id">
+    <label for="firstName">Nombres:</label>
+    <input type="text" id="firstName" name="firstName" required>
+    
+    <label for="lastName">Apellidos:</label>
+    <input type="text" id="lastName" name="lastName" required>
+    
+    <label for="city">Ciudad:</label>
+    <input type="text" id="city" name="city" required>
+    
+    <button type="submit">Guardar</button>
+  </form>
+
+  <h2>Datos almacenados</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombres</th>
+        <th>Apellidos</th>
+        <th>Ciudad</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="dataList"></tbody>
+  </table>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
