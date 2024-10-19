@@ -12,15 +12,12 @@
 
   <form id="dataForm">
     <input type="hidden" id="id" name="id">
-    <label for="firstName">Nombres:</label>
-    <input type="text" id="firstName" name="firstName" required>
-    
-    <label for="lastName">Apellidos:</label>
-    <input type="text" id="lastName" name="lastName" required>
-    
+    <label for="name">Nombre:</label>
+    <input type="text" id="name" name="name" required>
+    <label for="surnames">Apellidos:</label>
+    <input type="text" id="surnames" name="surnames" required>
     <label for="city">Ciudad:</label>
     <input type="text" id="city" name="city" required>
-    
     <button type="submit">Guardar</button>
   </form>
 
@@ -29,7 +26,7 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th>Nombres</th>
+        <th>Nombre</th>
         <th>Apellidos</th>
         <th>Ciudad</th>
         <th>Acciones</th>
@@ -38,6 +35,6 @@
     <tbody id="dataList"></tbody>
   </table>
 
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

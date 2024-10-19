@@ -1,64 +1,124 @@
-// app.js
-import IndexedDBManager from './IndexedDBManager.js';
+// Inicializar IndexedDB
+let db;
+const request = indexedDB.open("MiBaseDeDatos", 1);
 
-const dbManager = new IndexedDBManager("MiBaseDeDatos", "personas", ["firstName", "lastName", "city"]);
+request.onerror = (event) => {
+  console.log("Error al abrir la base de datos", event);
+};
 
-// Manejador de eventos para el formulario
+request.onsuccess = (event) => {
+  db = event.target.result;
+  mostrarDatos();
+};
+
+request.onupgradeneeded = (event) => {
+  db = event.target.result;
+  const objectStore = db.createObjectStore("personas", { keyPath: "id", autoIncrement: true });
+  objectStore.createIndex("name", "name", { unique: false });
+  objectStore.createIndex("surnames", "surnames", { unique: false });
+  objectStore.createIndex("city", "city", { unique: false });
+};
+
+// Función para insertar o actualizar un dato
 document.getElementById("dataForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const id = document.getElementById("id").value;
-  const firstName = document.getElementById("firstName").value;
-  const lastName = document.getElementById("lastName").value;
+  const name = document.getElementById("name").value;
+  const surnames = document.getElementById("surnames").value;
   const city = document.getElementById("city").value;
 
-  const data = { id: id ? Number(id) : undefined, firstName, lastName, city };
+  const transaction = db.transaction(["personas"], "readwrite");
+  const objectStore = transaction.objectStore("personas");
 
   if (id) {
-    dbManager.actualizar(data);
+    // Actualizar
+    const request = objectStore.put({ id: Number(id), name, surnames, city });
+    request.onsuccess = () => {
+      console.log("Datos actualizados");
+      limpiarFormulario();
+      mostrarDatos();
+    };
   } else {
-    dbManager.insertar(data);
+    // Insertar
+    const request = objectStore.add({ name, surnames, city });
+    request.onsuccess = () => {
+      console.log("Datos guardados");
+      limpiarFormulario();
+      mostrarDatos();
+    };
   }
-
-  limpiarFormulario();
 });
 
+// Mostrar los datos en la tabla
+function mostrarDatos() {
+  const dataList = document.getElementById("dataList");
+  dataList.innerHTML = ''; // Limpiar la tabla
+  const transaction = db.transaction(["personas"], "readonly");
+  const objectStore = transaction.objectStore("personas");
+
+  objectStore.openCursor().onsuccess = (event) => {
+    const cursor = event.target.result;
+    if (cursor) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${cursor.value.id}</td>
+        <td>${cursor.value.name}</td>
+        <td>${cursor.value.surnames}</td>
+        <td>${cursor.value.city}</td>
+        <td>
+          <button onclick="editarDato(${cursor.value.id})">Editar</button>
+          <button onclick="eliminarDato(${cursor.value.id})">Eliminar</button>
+        </td>
+      `;
+      dataList.appendChild(row);
+      cursor.continue();
+    }
+  };
+}
+
 // Función para editar un dato
-window.editarDato = function(id) {
-  const transaction = dbManager.db.transaction([dbManager.storeName], "readonly");
-  const objectStore = transaction.objectStore(dbManager.storeName);
+function editarDato(id) {
+  const transaction = db.transaction(["personas"], "readonly");
+  const objectStore = transaction.objectStore("personas");
   const request = objectStore.get(id);
 
   request.onsuccess = () => {
     const data = request.result;
     document.getElementById("id").value = data.id;
-    document.getElementById("firstName").value = data.firstName;
-    document.getElementById("lastName").value = data.lastName;
+    document.getElementById("name").value = data.name;
+    document.getElementById("surnames").value = data.surnames;
     document.getElementById("city").value = data.city;
   };
-};
+}
 
 // Función para eliminar un dato
-window.eliminarDato = function(id) {
-  dbManager.eliminar(id);
-};
+function eliminarDato(id) {
+  const transaction = db.transaction(["personas"], "readwrite");
+  const objectStore = transaction.objectStore("personas");
+  const request = objectStore.delete(id);
+
+  request.onsuccess = () => {
+    console.log("Datos eliminados");
+    mostrarDatos();
+  };
+}
 
 // Limpiar el formulario
 function limpiarFormulario() {
   document.getElementById("id").value = '';
-  document.getElementById("firstName").value = '';
-  document.getElementById("lastName").value = '';
+  document.getElementById("name").value = '';
+  document.getElementById("surnames").value = '';
   document.getElementById("city").value = '';
 }
 
-// Código para el Service Worker (opcional)
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js')
-      .then((registration) => {
-        console.log('Service Worker registrado:', registration);
-      })
-      .catch((error) => {
-        console.log('Error al registrar el Service Worker:', error);
-      });
-  });
-}
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registrado:', registration);
+        })
+        .catch((error) => {
+          console.log('Error al registrar el Service Worker:', error);
+        });
+    });
+  }
